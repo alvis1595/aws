@@ -33,7 +33,7 @@
     register: security_group
 
   - name: Crear una instancia EC2
-    ec2_instance:
+    amazon.aws.ec2_instance:
       name: "{{ ec2_instance_name }}"
       key_name: "{{ ec2_key_name }}"
       security_group: "{{ ec2_security_group }}"
