@@ -1,5 +1,5 @@
 ---
-- name: Playbook para crear un grupo de seguridad y una instancia EC2 en AWS
+- name: Playbook para crear una VPC, un grupo de seguridad y una instancia EC2 en AWS
   hosts: localhost
   connection: local
   gather_facts: false
@@ -12,13 +12,23 @@
     ec2_instance_type: t2.small
     ec2_key_name: vockey
     aws_region: us-east-1  # Reemplaza con tu región deseada
+    cidr_block: "10.0.0.0/16"  # Bloque CIDR para la nueva VPC
 
   tasks:
-  - name: Crear un grupo de seguridad
-    amazon.aws.ec2_group:  # Asegúrate de usar el nombre de colección correcto
+  - name: Crear una nueva VPC
+    amazon.aws.ec2_vpc_net:
+      name: "vpc_example"
+      cidr_block: "{{ cidr_block }}"
+      region: "{{ aws_region }}"
+      state: present
+    register: vpc
+
+  - name: Crear un grupo de seguridad en la nueva VPC
+    amazon.aws.ec2_group:
       name: "{{ ec2_security_group }}"
       description: "{{ ec2_security_group_description }}"
-      region: "{{ aws_region }}"  # Especifica la región aquí
+      region: "{{ aws_region }}"
+      vpc_id: "{{ vpc.vpc.id }}"  # Usa el ID de la VPC recién creada
       rules:
       - proto: tcp
         from_port: 22
