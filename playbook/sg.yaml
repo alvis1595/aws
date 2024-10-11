@@ -1,0 +1,35 @@
+---
+- name: Playbook para crear un grupo de seguridad y una instancia EC2 en AWS
+  hosts: localhost
+  connection: local
+  gather_facts: false
+
+  vars:
+    ec2_security_group: sg_ejemplo_12
+    ec2_security_group_description: Grupo de seguridad del ejemplo 12
+    ec2_instance_name: instancia_ejemplo_12
+    ec2_image: ami-06878d265978313ca
+    ec2_instance_type: t2.small
+    ec2_key_name: vockey
+    aws_region: us-east-1  # Reemplaza con tu región deseada
+
+  tasks:
+  - name: Crear un grupo de seguridad
+    amazon.aws.ec2_group:  # Asegúrate de usar el nombre de colección correcto
+      name: "{{ ec2_security_group }}"
+      description: "{{ ec2_security_group_description }}"
+      region: "{{ aws_region }}"  # Especifica la región aquí
+      rules:
+      - proto: tcp
+        from_port: 22
+        to_port: 22
+        cidr_ip: 0.0.0.0/0
+      - proto: tcp
+        from_port: 80
+        to_port: 80
+        cidr_ip: 0.0.0.0/0
+      - proto: tcp
+        from_port: 443
+        to_port: 443
+        cidr_ip: 0.0.0.0/0
+    register: security_group
