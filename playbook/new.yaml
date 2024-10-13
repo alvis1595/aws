@@ -1,0 +1,150 @@
+---
+- name: Create AWS infrastructure and deploy Jenkins on ECS with Fargate
+  hosts: localhost
+  gather_facts: no
+  vars:
+    VpcCidrBlock: "10.0.0.0/16"
+    SubnetCidrBlock: "10.0.1.0/24"
+    EcsClusterName: "jenkins-cluster"
+    JenkinsContainerName: "jenkins"
+    JenkinsImage: "jenkins/jenkins:lts"
+    JenkinsCpu: 512
+    JenkinsMemory: 1024
+    JenkinsPort: 8080
+    JenkinsTaskRoleName: "jenkinsTaskRole"
+    JenkinsExecutionRoleName: "jenkinsExecutionRole"
+
+  tasks:
+    - name: Create VPC
+      ec2_vpc_net:
+        name: "jenkins-vpc"
+        cidr_block: "{{ VpcCidrBlock }}"
+        state: present
+        dns_support: yes
+        dns_hostnames: yes
+      register: vpc_result
+
+    - name: Create Subnet
+      ec2_vpc_subnet:
+        vpc_id: "{{ vpc_result.vpc.id }}"
+        cidr: "{{ SubnetCidrBlock }}"
+        az: "us-east-1a"  # Cambia a la AZ que necesites
+        state: present
+        map_public: yes
+      register: subnet_result
+
+    - name: Create Security Group for Jenkins
+      ec2_group:
+        name: "jenkins-sg"
+        description: "Allow traffic for Jenkins"
+        vpc_id: "{{ vpc_result.vpc.id }}"
+        state: present
+      register: sg_result
+
+    - name: Add Security Group Rule for Jenkins
+      ec2_group:
+        name: "{{ sg_result.group_id }}"
+        rules:
+          - proto: tcp
+            ports:
+              - "{{ JenkinsPort }}"
+            cidr_ip: "0.0.0.0/0"
+        state: present
+
+    - name: Create IAM Role for ECS Task
+      iam_role:
+        name: "{{ JenkinsTaskRoleName }}"
+        assume_role_policy_document: |
+          {
+            "Version": "2012-10-17",
+            "Statement": [
+              {
+                "Effect": "Allow",
+                "Principal": {
+                  "Service": "ecs-tasks.amazonaws.com"
+                },
+                "Action": "sts:AssumeRole"
+              }
+            ]
+          }
+      register: task_role
+
+    - name: Attach IAM Policy to Task Role
+      iam_policy_attachment:
+        name: "ecs-task-policy"
+        policy_arn: "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
+        roles: "{{ JenkinsTaskRoleName }}"
+
+    - name: Create IAM Role for ECS Execution
+      iam_role:
+        name: "{{ JenkinsExecutionRoleName }}"
+        assume_role_policy_document: |
+          {
+            "Version": "2012-10-17",
+            "Statement": [
+              {
+                "Effect": "Allow",
+                "Principal": {
+                  "Service": "ecs-tasks.amazonaws.com"
+                },
+                "Action": "sts:AssumeRole"
+              }
+            ]
+          }
+      register: execution_role
+
+    - name: Attach IAM Policy to Execution Role
+      iam_policy_attachment:
+        name: "ecs-execution-policy"
+        policy_arn: "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
+        roles: "{{ JenkinsExecutionRoleName }}"
+
+    - name: Create ECS Cluster
+      ecs_cluster:
+        name: "{{ EcsClusterName }}"
+
+    - name: Create Jenkins ECS Task Definition
+      ecs_taskdefinition:
+        family: jenkins_ecs_fargate
+        execution_role_arn: "{{ execution_role.role.arn }}"
+        task_role_arn: "{{ task_role.role.arn }}"
+        network_mode: awsvpc
+        requires_compatibilities: ["FARGATE"]
+        cpu: "{{ JenkinsCpu }}"
+        memory: "{{ JenkinsMemory }}"
+        container_definitions:
+          - name: "{{ JenkinsContainerName }}"
+            image: "{{ JenkinsImage }}"
+            cpu: "{{ JenkinsCpu }}"
+            memory: "{{ JenkinsMemory }}"
+            essential: true
+            portMappings:
+              - containerPort: "{{ JenkinsPort }}"
+                hostPort: "{{ JenkinsPort }}"
+            environment:
+              - name: "JAVA_OPTS"
+                value: "-Djenkins.install.runSetupWizard=false"
+      register: task_definition
+
+    - name: Create ECS service for Jenkins
+      ecs_service:
+        name: "jenkins_ecs_service"
+        cluster: "{{ EcsClusterName }}"
+        task_definition: "{{ task_definition.taskdefinition.taskDefinitionArn }}"
+        desired_count: 1
+        launch_type: FARGATE
+        network_configuration:
+          awsvpcConfiguration:
+            subnets: "{{ [subnet_result.subnet.id] }}"
+            securityGroups: "{{ [sg_result.group_id] }}"
+            assignPublicIp: "ENABLED"
+        load_balancers: []
+      register: service_output
+
+    - name: Print service status
+      debug:
+        var: service_output.service.status
+
+    - name: Print service ARN
+      debug:
+        var: service_output.service.serviceArn
