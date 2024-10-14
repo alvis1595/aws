@@ -1,0 +1,54 @@
+- name: Deploy ECS task definition and service for Jenkins
+  hosts: localhost
+
+  tasks:
+    - set_fact: EcsClusterName="YOUR_CLUSTER"
+    
+    - name: create task definition for Jenkins
+      ecs_taskdefinition:
+        containers:
+        - name: jenkins
+          cpu: 10
+          essential: true
+          image: "jenkins/jenkins:lts"  # Utiliza la imagen LTS de Jenkins
+          memory: 1000  # Ajusta la memoria según sea necesario
+          portMappings:
+          - containerPort: 8080  # Puerto por defecto para Jenkins
+            hostPort: 8080
+          environment:
+          - name: "JENKINS_OPTS"
+            value: "--httpPort=8080"  # Opciones de Jenkins
+        state: present
+        family: jenkins_from_ansible  # Nombre de la familia de la definición de tarea
+      register: task_output    
+
+    - name: Print details name      
+      debug: var=task_output.taskdefinition["family"]
+      
+    - name: Print details Task revision     
+      debug: var=task_output.taskdefinition["revision"]
+      
+    - name: Print details Task name and revision     
+      debug: 
+        msg: "{{ task_output.taskdefinition['family'] }}:{{ task_output.taskdefinition['revision'] }}"
+    
+    - name: create ECS service
+      ecs_service:
+        state: present
+        name: jenkins_from_ansible
+        cluster: "{{ EcsClusterName }}"
+        task_definition: "{{ task_output.taskdefinition['family'] }}:{{ task_output.taskdefinition['revision'] }}"
+        desired_count: 1       
+      register: service_output
+    
+    - name: Service Status     
+      debug: var=service_output.service.status
+    
+    - name: Service name 
+      debug: var=service_output.service.serviceName
+
+    - name: Service ARN
+      debug: var=service_output.service.serviceArn
+
+    - name: Cluster ARN 
+      debug: var=service_output.service.clusterArn
