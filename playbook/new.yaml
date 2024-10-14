@@ -41,6 +41,7 @@
         description: "Allow traffic for Jenkins"
         vpc_id: "{{ vpc_result.vpc.id }}"
         region: "us-east-1" 
+        description: "Security group for HTTP traffic"  # Descripción requerida
         state: present
       register: sg_result
 
