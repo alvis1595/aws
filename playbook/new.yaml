@@ -78,9 +78,15 @@
     - name: Attach IAM Policy to Task Role
  #     iam_policy_attachment:
       amazon.aws.iam_policy:
-        name: "ecs-task-policy"
+        name: "ecs-task-policy" 
+        region: us-east-1 
+        state: presen  t
         policy_arn: "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
-        roles: "{{ JenkinsTaskRoleName }}"
+        roles:
+        - "{{ task_role.role_name }}"
+        iam_name: "{{ task_role.role_name }}"  # Reutilizamos el nombre del rol
+        iam_type: "role"                     # Especificamos que es un rol
+        policy_name: "AmazonECSTaskExecutionRolePolicy"
 
     - name: Create IAM Role for ECS Execution
       iam_role:
