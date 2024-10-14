@@ -95,7 +95,8 @@
       register: execution_role
 
     - name: Attach IAM Policy to Execution Role
-      iam_policy_attachment:
+ #     iam_policy_attachment:
+      amazon.aws.iam_policy:
         name: "ecs-execution-policy"
         policy_arn: "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
         roles: "{{ JenkinsExecutionRoleName }}"
