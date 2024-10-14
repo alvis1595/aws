@@ -82,7 +82,7 @@
         region: us-east-1 
         state: present
  #       policy_arn: "{{ task_role.iam_role.arn }}"
-         policy_json: >-
+        policy_json: >-
           {
             "Version": "2012-10-17",
             "Statement": [
