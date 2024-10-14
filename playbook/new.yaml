@@ -80,7 +80,7 @@
       amazon.aws.iam_policy:
         name: "ecs-task-policy" 
         region: us-east-1 
-        state: presen  t
+        state: present
         policy_arn: "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
         roles:
         - "{{ task_role.iam_role.role_name }}"  # Acceso correcto al role_name
