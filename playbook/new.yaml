@@ -75,13 +75,9 @@
           }
       register: task_role
 
-    - name: Attach IAM Policy to Task Role
- #     iam_policy_attachment:
+    - name: Create ECS Task Execution Policy
       amazon.aws.iam_policy:
-        name: "ecs-task-policy" 
-        region: us-east-1 
-        state: present
- #       policy_arn: "{{ task_role.iam_role.arn }}"
+        policy_name: "AmazonECSTaskExecutionRolePolicy"
         policy_json: >-
           {
             "Version": "2012-10-17",
@@ -101,11 +97,17 @@
               }
             ]
           }
-        roles:
-        - "{{ task_role.iam_role.role_name }}"  # Acceso correcto al role_name
-        iam_name: "{{ task_role.iam_role.role_name }}"  # Acceso correcto al role_name
-        iam_type: "role"                     # Especificamos que es un rol
-        policy_name: "AmazonECSTaskExecutionRolePolicy"
+        state: present
+        region: "us-east-1"
+      register: ecs_policy
+
+    - name: Attach the ECS Task Execution Policy to the IAM Role
+      amazon.aws.iam_role:
+        name: "{{ task_role.iam_role.role_name }}"
+        state: present
+        policies:
+        - "{{ ecs_policy.policy.policy_name }}"
+      region: "us-east-1"
 
     - name: Create IAM Role for ECS Execution
       iam_role:
