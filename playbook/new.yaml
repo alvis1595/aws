@@ -83,8 +83,8 @@
         state: presen  t
         policy_arn: "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
         roles:
-        - "{{ task_role.role_name }}"
-        iam_name: "{{ task_role.role_name }}"  # Reutilizamos el nombre del rol
+        - "{{ task_role.iam_role.role_name }}"  # Acceso correcto al role_name
+        iam_name: "{{ task_role.iam_role.role_name }}"  # Acceso correcto al role_name
         iam_type: "role"                     # Especificamos que es un rol
         policy_name: "AmazonECSTaskExecutionRolePolicy"
 
