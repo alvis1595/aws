@@ -49,6 +49,7 @@
       ec2_group:
         name: "{{ sg_result.group_id }}"
         description: "Security group for HTTP traffic" 
+        region: us-east-1 
         rules:
           - proto: tcp
             ports:
