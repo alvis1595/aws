@@ -9,7 +9,7 @@
         name: YOUR_CLUSTER
         region: us-east-1
         state: present  # Añade esta línea
-        register: ecs_cluster
+       # register: ecs_cluster
     
     - name: create task definition for Jenkins
       ecs_taskdefinition:
