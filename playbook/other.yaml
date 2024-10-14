@@ -19,7 +19,7 @@
           - name: "JENKINS_OPTS"
             value: "--httpPort=8080"  # Opciones de Jenkins
         state: present
-        region: "us-east-1"
+        region: us-east-1
         family: jenkins_from_ansible  # Nombre de la familia de la definición de tarea
       register: task_output    
 
