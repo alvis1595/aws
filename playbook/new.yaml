@@ -81,7 +81,26 @@
         name: "ecs-task-policy" 
         region: us-east-1 
         state: present
-        policy_arn: "{{ task_role.iam_role.arn }}"
+ #       policy_arn: "{{ task_role.iam_role.arn }}"
+         policy_json: >-
+          {
+            "Version": "2012-10-17",
+            "Statement": [
+              {
+                "Effect": "Allow",
+                "Action": [
+                  "ecs:RunTask",
+                  "ecs:StartTask",
+                  "ecs:StopTask",
+                  "ecr:GetAuthorizationToken",
+                  "ecr:BatchCheckLayerAvailability",
+                  "ecr:GetDownloadUrlForLayer",
+                  "ecr:BatchGetImage"
+                ],
+                "Resource": "*"
+              }
+            ]
+          }
         roles:
         - "{{ task_role.iam_role.role_name }}"  # Acceso correcto al role_name
         iam_name: "{{ task_role.iam_role.role_name }}"  # Acceso correcto al role_name
