@@ -18,6 +18,7 @@
     - name: Create VPC
       ec2_vpc_net:
         name: "jenkins-vpc"
+        region: "us-east-1"
         cidr_block: "{{ VpcCidrBlock }}"
         state: present
         dns_support: yes
