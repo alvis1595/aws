@@ -107,8 +107,21 @@
       amazon.aws.iam_role:
         name: "{{ task_role.iam_role.role_name }}"
         state: present
+        assume_role_policy_document: |
+          {
+            "Version": "2012-10-17",
+            "Statement": [
+              {
+                "Effect": "Allow",
+                "Principal": {
+                  "Service": "ecs-tasks.amazonaws.com"
+                },
+                "Action": "sts:AssumeRole"
+              }
+            ]
+          }
         policies:
-        - "{{ ecs_policy.policy_names[0] }}"
+          - "{{ ecs_policy.policy_names[0] }}"
         region: "us-east-1"
 
     - name: Create IAM Role for ECS Execution
