@@ -3,4 +3,3 @@ collections:
 - name: amazon.aws
 - name: community.aws
 - name: community.general
-- name: community.aws.iam_policy
