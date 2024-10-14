@@ -107,7 +107,7 @@
         state: present
         policies:
         - "{{ ecs_policy.policy.policy_name }}"
-      region: "us-east-1"
+        region: "us-east-1"
 
     - name: Create IAM Role for ECS Execution
       iam_role:
