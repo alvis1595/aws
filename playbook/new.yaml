@@ -40,6 +40,7 @@
         name: "jenkins-sg"
         description: "Allow traffic for Jenkins"
         vpc_id: "{{ vpc_result.vpc.id }}"
+        region: "us-east-1" 
         state: present
       register: sg_result
 
