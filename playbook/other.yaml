@@ -8,7 +8,7 @@
       amazon.aws.ecs_cluster:
         name: YOUR_CLUSTER
         region: us-east-1
-      register: ecs_cluster
+        register: ecs_cluster
     
     - name: create task definition for Jenkins
       ecs_taskdefinition:
