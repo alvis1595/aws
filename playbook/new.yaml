@@ -48,6 +48,7 @@
     - name: Add Security Group Rule for Jenkins
       ec2_group:
         name: "{{ sg_result.group_id }}"
+        description: "Security group for HTTP traffic" 
         rules:
           - proto: tcp
             ports:
