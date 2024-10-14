@@ -39,7 +39,8 @@
         name: jenkins_from_ansible
         cluster: "{{ EcsClusterName }}"
         task_definition: "{{ task_output.taskdefinition['family'] }}:{{ task_output.taskdefinition['revision'] }}"
-        desired_count: 1       
+        desired_count: 1  
+        region: us-east-1
       register: service_output
     
     - name: Service Status     
