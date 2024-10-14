@@ -47,7 +47,7 @@
 
     - name: Add Security Group Rule for Jenkins
       ec2_group:
-        name: "{{ sg_result.group_id }}"
+        name: my-security-group2
         description: "Security group for HTTP traffic" 
         region: us-east-1 
         rules:
