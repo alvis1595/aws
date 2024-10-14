@@ -98,6 +98,8 @@
             ]
           }
         state: present
+        iam_name: "{{ task_role.iam_role.role_name }}"  # Nombre del rol al que se adjuntará la política
+        iam_type: "role"  # Especifica que es un rol
         region: "us-east-1"
       register: ecs_policy
 
