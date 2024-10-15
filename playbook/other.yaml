@@ -15,7 +15,8 @@
         region: us-east-1
         vpc_id: "{{ vpc_output.vpc.id }}"
         cidr: "10.0.1.0/24"  # Ajusta según sea necesario
-        name: "my-subnet"
+        tags:
+          Name: Jenkinss Subnet
       register: subnet_output
       
 
