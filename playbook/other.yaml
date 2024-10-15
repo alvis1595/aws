@@ -74,11 +74,11 @@
         launch_type: FARGATE
         network_configuration:
  #         awsvpc_configuration:
-        subnets:
-          - subnet-09f22bd8b4fc4bece
-        security_groups:
-          - sg-0c31f203e2f118f92
-            assign_public_ip: "ENABLED"
+          subnets:
+            - subnet-09f22bd8b4fc4bece
+          security_groups:
+            - sg-0c31f203e2f118f92
+          assign_public_ip: "ENABLED"
         region: us-east-1
       register: service_output
 
