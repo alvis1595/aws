@@ -48,8 +48,7 @@
       community.aws.ecs_taskdefinition:
         family: jenkins_from_ansible
         network_mode: awsvpc
-        requires_compatibilities:
-          - FARGATE
+        launch_type: FARGATE
         cpu: 512
         memory: 1024
         containers:
