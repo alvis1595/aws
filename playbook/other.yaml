@@ -35,7 +35,7 @@
 
     - set_fact: 
         EcsClusterName: "YOUR_CLUSTER"
-        SubnetId: "{{ subnet_output.id }}"  # Usar la primera subred de la VPC
+        SubnetId: "{{ subnet_output.subnet.id }}"  # Usar la primera subred de la VPC
         SecurityGroupId: "{{ sg_output.group_id }}"
 
     - name: Crear clúster de ECS
