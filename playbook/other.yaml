@@ -1,8 +1,31 @@
 - name: Deploy ECS task definition and service for Jenkins
   hosts: localhost
-
   tasks:
-    - set_fact: EcsClusterName="YOUR_CLUSTER"
+    - name: Crear una VPC
+      community.aws.vpc_net:
+        state: present
+        region: us-east-1
+        cidr_block: "10.0.0.0/16"
+        name: "my-vpc"
+      register: vpc_output
+
+    - name: Crear un grupo de seguridad
+      community.aws.ec2_group:
+        name: "jenkins-sg"
+        description: "Security group for Jenkins"
+        vpc_id: "{{ vpc_output.vpc.id }}"
+        region: us-east-1
+        rules:
+          - proto: tcp
+            from_port: 8080
+            to_port: 8080
+            cidr_ip: "0.0.0.0/0"  # Permitir acceso público en el puerto 8080
+      register: sg_output
+
+    - set_fact: 
+        EcsClusterName: "YOUR_CLUSTER"
+        SubnetId: "{{ vpc_output.subnets[0].id }}"  # Usar la primera subred de la VPC
+        SecurityGroupId: "{{ sg_output.group_id }}"
 
     - name: Crear clúster de ECS
       community.aws.ecs_cluster:
@@ -10,54 +33,53 @@
         region: us-east-1
         state: present
     
-    - name: create task definition for Jenkins
-      ecs_taskdefinition:
+    - name: Crear definición de tarea para Jenkins
+      community.aws.ecs_taskdefinition:
+        family: jenkins_from_ansible
+        network_mode: awsvpc
+        requires_compatibilities:
+          - FARGATE
+        cpu: 512
+        memory: 1024
         containers:
-        - name: jenkins
-          cpu: 512  # Ajusta según tus necesidades
-          essential: true
-          image: "jenkins/jenkins:lts"  # Imagen pública de Jenkins en Docker Hub
-          memory: 1024  # Ajusta según sea necesario
-          portMappings:
-          - containerPort: 8080  # Puerto por defecto para Jenkins
-            hostPort: 8080
-          environment:
-          - name: "JENKINS_OPTS"
-            value: "--httpPort=8080"  # Opciones de Jenkins
+          - name: jenkins
+            essential: true
+            image: "jenkins/jenkins:lts"
+            portMappings:
+              - containerPort: 8080
+            environment:
+              - name: JENKINS_OPTS
+                value: "--httpPort=8080"
         state: present
         region: us-east-1
-        family: jenkins_from_ansible  # Nombre de la familia de la definición de tarea
-        requires_compatibilities:
-          - FARGATE  # Requerido para usar Fargate
-        network_mode: awsvpc  # Requerido para Fargate
-        cpu: 512  # Requerido por Fargate
-        memory: 1024  # Requerido por Fargate
-      register: task_output    
+      register: task_output
 
-    - name: Print details Task family and revision     
-      debug:
-        msg: "{{ task_output.taskdefinition['family'] }}:{{ task_output.taskdefinition['revision'] }}"
-
-    - name: create ECS service
-      ecs_service:
+    - name: Crear servicio ECS para Jenkins
+      community.aws.ecs_service:
         state: present
         name: jenkins_from_ansible
         cluster: "{{ EcsClusterName }}"
         task_definition: "{{ task_output.taskdefinition['family'] }}:{{ task_output.taskdefinition['revision'] }}"
-        desired_count: 1  
+        desired_count: 1
+        launch_type: FARGATE
+        network_configuration:
+          awsvpc_configuration:
+            subnets:
+              - "{{ SubnetId }}"
+            security_groups:
+              - "{{ SecurityGroupId }}"
+            assign_public_ip: "ENABLED"
         region: us-east-1
-        launch_type: FARGATE  # Especifica Fargate como tipo de lanzamiento
-        network_configuration: {}  # Modo de red Fargate, sin especificar subnets ni security groups
       register: service_output
-    
-    - name: Service Status     
+
+    - name: Mostrar estado del servicio
       debug: var=service_output.service.status
-    
-    - name: Service name 
+
+    - name: Mostrar nombre del servicio
       debug: var=service_output.service.serviceName
 
-    - name: Service ARN
+    - name: Mostrar ARN del servicio
       debug: var=service_output.service.serviceArn
 
-    - name: Cluster ARN 
+    - name: Mostrar ARN del clúster
       debug: var=service_output.service.clusterArn
