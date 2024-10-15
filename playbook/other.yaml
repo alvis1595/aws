@@ -10,7 +10,7 @@
       register: vpc_output
 
     - name: Crear una subred en la VPC
-      amazon.aws.vpc_subnet:
+      amazon.aws.ec2_vpc_subnet:
         state: present
         region: us-east-1
         vpc_id: "{{ vpc_output.vpc.id }}"
