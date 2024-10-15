@@ -9,6 +9,16 @@
         name: "my-vpc"
       register: vpc_output
 
+    - name: Crear una subred en la VPC
+      amazon.aws.vpc_subnet:
+        state: present
+        region: us-east-1
+        vpc_id: "{{ vpc_output.vpc.id }}"
+        cidr: "10.0.1.0/24"  # Ajusta según sea necesario
+        name: "my-subnet"
+      register: subnet_output
+      
+
     - name: Crear un grupo de seguridad
       amazon.aws.ec2_group:
         name: "jenkins-sg"
