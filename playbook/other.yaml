@@ -78,7 +78,7 @@
             - subnet-09f22bd8b4fc4bece
           security_groups:
             - sg-0c31f203e2f118f92
-          assign_public_ip: "ENABLED"
+          assign_public_ip: true
         region: us-east-1
       register: service_output
 
