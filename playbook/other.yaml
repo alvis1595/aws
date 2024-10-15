@@ -2,7 +2,7 @@
   hosts: localhost
   tasks:
     - name: Crear una VPC
-      community.aws.vpc_net:
+      amazon.aws.ec2_vpc_net:
         state: present
         region: us-east-1
         cidr_block: "10.0.0.0/16"
@@ -10,7 +10,7 @@
       register: vpc_output
 
     - name: Crear un grupo de seguridad
-      community.aws.ec2_group:
+      amazon.aws.ec2_group:
         name: "jenkins-sg"
         description: "Security group for Jenkins"
         vpc_id: "{{ vpc_output.vpc.id }}"
