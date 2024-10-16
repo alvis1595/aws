@@ -10,9 +10,13 @@
         region: "us-east-1"
       register: keypair
 
-    - name: Guardar la clave privada en formato PEM en pruebasawx
+    - name: Mostrar la salida de keypair
+      debug:
+        var: keypair
+
+    - name: Guardar la clave privada en formato PEM en /pruebasawx
       copy:
         content: "{{ keypair.key.private_key }}"
         dest: "/pruebasawx/mi_par_de_claves.pem"
         mode: '0600'
-      when: keypair.key.private_key is defined
+      when: keypair.key is defined and keypair.key.private_key is defined
