@@ -12,17 +12,13 @@
 
     - name: Crear directorio pruebasawx si no existe
       file:
-        path: "./pruebasawx"
+        path: "/pruebasawx"
         state: directory
         mode: '0755'
 
     - name: Guardar la clave privada en formato PEM en pruebasawx
       copy:
         content: "{{ keypair.key.private_key }}"
-        dest: "./pruebasawx/mi_par_de_claves.pem"
+        dest: "/pruebasawx/mi_par_de_claves.pem"
         mode: '0600'
       when: keypair.key.private_key is defined
-
-    - name: Mostrar información del Key Pair
-      debug:
-        msg: "La clave pública asociada es: {{ keypair.key.public_key }}"
