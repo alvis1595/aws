@@ -10,12 +10,6 @@
         region: "us-east-1"
       register: keypair
 
-    - name: Crear directorio pruebasawx si no existe
-      file:
-        path: "/pruebasawx"
-        state: directory
-        mode: '0755'
-
     - name: Guardar la clave privada en formato PEM en pruebasawx
       copy:
         content: "{{ keypair.key.private_key }}"
