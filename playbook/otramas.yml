@@ -65,8 +65,8 @@
         route_table_id: "{{ rt_output.route_table.id }}"
         vpc_id: "{{ vpc_output.vpc.id }}"
         region: us-east-1
-        associations:
-          - subnet_id: "{{ subnet_output.subnet.id }}"
+        subnets:
+          - "{{ subnet_output.subnet.id }}"
 
     - set_fact: 
         EcsClusterName: "YOUR_CLUSTER"
