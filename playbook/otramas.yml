@@ -101,6 +101,7 @@
                 awslogs-group: "/ecs/jenkins-logs"
                 awslogs-region: "us-east-1"
                 awslogs-stream-prefix: "jenkins"
+        execution_role_arn: arn:aws:iam::565393029776:role/ECS_Fargate_Execution_Role
         state: present
         region: us-east-1
       register: task_output
