@@ -5,8 +5,8 @@
       amazon.aws.ec2_vpc_net:
         state: present
         region: us-east-1
-        cidr_block: "15.0.0.0/16"
-        name: "nueva-vpc"
+        cidr_block: "17.0.0.0/16"
+        name: "nueva-vpc2"
       register: vpc_output
 
     - name: Crear una subred en la VPC
@@ -14,7 +14,7 @@
         state: present
         region: us-east-1
         vpc_id: "{{ vpc_output.vpc.id }}"
-        cidr: "15.0.1.0/24"
+        cidr: "17.0.1.0/24"
         tags:
           Name: Jenkins Subnet3
       register: subnet_output
