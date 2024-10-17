@@ -51,7 +51,7 @@
       amazon.aws.ec2_vpc_route_table:
         route_table_id: "{{ rt_output.route_table.id }}"
         cidr: "0.0.0.0/0"
-        gateway_id: "{{ igw_output.internet_gateway.id }}"
+        gateway_id: "{{ igw_output.gateway.id }}"
         region: us-east-1
 
     - name: Asociar subred a la tabla de rutas
