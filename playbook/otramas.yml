@@ -5,7 +5,7 @@
       amazon.aws.ec2_vpc_net:
         state: present
         region: us-east-1
-        cidr_block: "10.0.0.0/16"
+        cidr_block: "15.0.0.0/16"
         name: "nueva-vpc"
       register: vpc_output
 
@@ -14,7 +14,7 @@
         state: present
         region: us-east-1
         vpc_id: "{{ vpc_output.vpc.id }}"
-        cidr: "10.0.1.0/24"
+        cidr: "15.0.1.0/24"
         tags:
           Name: Jenkins Subnet3
       register: subnet_output
@@ -49,14 +49,14 @@
 
     - name: Configurar tabla de rutas
       amazon.aws.ec2_vpc_route_table:
-        vpc_id: vpc-0e472978dfd0fc819
-        route_table_id: rtb-0e9512973a42cb9fb
+        vpc_id: "{{ vpc_output.vpc.id }}"
+        route_table_id: "{{ rt_output.route_table.route_table_id }}"
         region: us-east-1
-        gateway_id: igw-09c5ffd359cdd9b14
+        gateway_id: "{{ igw_output.gateway_id }}"
         state: present
         routes:
           - dest: "0.0.0.0/0"  # Rango de dirección de destino
-            gateway_id: igw-09c5ffd359cdd9b14  # Gateway asociado a la ruta
+            gateway_id: "{{ igw_output.gateway_id }}"  # Gateway asociado a la ruta
         tags:
           Name: "Route Table"
 
