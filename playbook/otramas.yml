@@ -47,14 +47,19 @@
         region: us-east-1
       register: rt_output
 
-    - name: Agregar ruta predeterminada a la tabla de rutas
+    - name: Configurar tabla de rutas
       amazon.aws.ec2_vpc_route_table:
-        route_table_id: "{{ rt_output.route_table.route_table_id }}"
-        destination_cidr_block: "0.0.0.0/0"
-        gateway_id: "{{ igw_output.gateway_id }}"
-        vpc_id: "{{ vpc_output.vpc.id }}"
+        vpc_id: vpc-0e472978dfd0fc819
+        route_table_id: rtb-0e9512973a42cb9fb
         region: us-east-1
+        gateway_id: igw-09c5ffd359cdd9b14
         state: present
+        routes:
+          - dest: "0.0.0.0/0"  # Rango de dirección de destino
+            gateway_id: igw-09c5ffd359cdd9b14  # Gateway asociado a la ruta
+        tags:
+          Name: "Route Table"
+
 
     - name: Asociar subred a la tabla de rutas
       amazon.aws.ec2_vpc_route_table:
