@@ -1,0 +1,127 @@
+- name: Deploy ECS task definition and service for Jenkins
+  hosts: localhost
+  tasks:
+    - name: Crear una VPC
+      amazon.aws.ec2_vpc_net:
+        state: present
+        region: us-east-1
+        cidr_block: "10.0.0.0/16"
+        name: "nueva-vpc"
+      register: vpc_output
+
+    - name: Crear una subred en la VPC
+      amazon.aws.ec2_vpc_subnet:
+        state: present
+        region: us-east-1
+        vpc_id: "{{ vpc_output.vpc.id }}"
+        cidr: "10.0.1.0/24"
+        tags:
+          Name: Jenkins Subnet3
+      register: subnet_output
+
+    - name: Crear un grupo de seguridad
+      amazon.aws.ec2_group:
+        name: "jenkins-sg"
+        description: "Security group for Jenkins"
+        vpc_id: "{{ vpc_output.vpc.id }}"
+        region: us-east-1
+        rules:
+          - proto: tcp
+            from_port: 8080
+            to_port: 8080
+            cidr_ip: "0.0.0.0/0"
+      register: sg_output
+
+    - name: Crear un Internet Gateway
+      amazon.aws.ec2_vpc_igw:
+        state: present
+        region: us-east-1
+        vpc_id: "{{ vpc_output.vpc.id }}"
+      register: igw_output
+
+    - name: Crear una tabla de rutas
+      amazon.aws.ec2_vpc_route_table:
+        vpc_id: "{{ vpc_output.vpc.id }}"
+        tags:
+          Name: Jenkins Route Table
+        region: us-east-1
+      register: rt_output
+
+    - name: Agregar ruta predeterminada a la tabla de rutas
+      amazon.aws.ec2_vpc_route:
+        route_table_id: "{{ rt_output.route_table.id }}"
+        cidr: "0.0.0.0/0"
+        gateway_id: "{{ igw_output.internet_gateway.id }}"
+        region: us-east-1
+
+    - name: Asociar tabla de rutas a la subred
+      amazon.aws.ec2_vpc_route_table_subnet_association:
+        subnet_id: "{{ subnet_output.subnet.id }}"
+        route_table_id: "{{ rt_output.route_table.id }}"
+        region: us-east-1
+
+    - set_fact: 
+        EcsClusterName: "YOUR_CLUSTER"
+        SubnetId: "{{ subnet_output.subnet.id }}"
+        SecurityGroupId: "{{ sg_output.group_id }}"
+
+    - name: Crear clúster de ECS
+      community.aws.ecs_cluster:
+        name: "{{ EcsClusterName }}"
+        region: us-east-1
+        state: present
+
+    - name: Crear definición de tarea para Jenkins
+      community.aws.ecs_taskdefinition:
+        family: jenkins_from_ansible
+        network_mode: awsvpc
+        launch_type: FARGATE
+        cpu: 512
+        memory: 1024
+        containers:
+          - name: jenkins
+            essential: true
+            image: "jenkins/jenkins:lts"
+            portMappings:
+              - containerPort: 8080
+            environment:
+              - name: JENKINS_OPTS
+                value: "--httpPort=8080"
+            logConfiguration:
+              logDriver: awslogs
+              options:
+                awslogs-group: "/ecs/jenkins-logs"
+                awslogs-region: "us-east-1"
+                awslogs-stream-prefix: "jenkins"
+        state: present
+        region: us-east-1
+      register: task_output
+
+    - name: Crear servicio ECS para Jenkins
+      community.aws.ecs_service:
+        state: present
+        name: jenkins_from_ansible
+        cluster: "{{ EcsClusterName }}"
+        task_definition: "{{ task_output.taskdefinition['family'] }}:{{ task_output.taskdefinition['revision'] }}"
+        desired_count: 1
+        launch_type: FARGATE
+        network_configuration:
+          subnets:
+            - "{{ SubnetId }}"
+          security_groups:
+            - "{{ SecurityGroupId }}"
+          assign_public_ip: true
+        region: us-east-1
+      register: service_output
+
+    - name: Mostrar estado del servicio
+      debug: var=service_output.service.status
+
+    - name: Mostrar nombre del servicio
+      debug: var=service_output.service.serviceName
+
+    - name: Mostrar ARN del servicio
+      debug: var=service_output.service.serviceArn
+
+    - name: Mostrar ARN del clúster
+      debug: var=service_output.service.clusterArn
